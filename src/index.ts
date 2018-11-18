@@ -1,19 +1,17 @@
 import XRegExp from "xregexp";
 import keywords from "./keywords";
+import { Token, TokenType } from "./Token";
 
 var charIsLetter = XRegExp("^\\pL+$");
 var charIsNumber = XRegExp("^\\pN+$");
 
+export { TokenType };
+
 export class Tokenizer {
 
-    constructor(source) {
-        if(!source)
-            throw new Error("É necessário informar um comando SQL");
-
-        this.currentCharIndex = 0;
-        this.source = source;
-        this.result = [];
-    }
+    source: string;
+    currentCharIndex: number;
+    result: Array<Token>;
     
     get currentChar() {
         return this.source[this.currentCharIndex];
@@ -21,6 +19,15 @@ export class Tokenizer {
 
     get eof() {
         return this.currentCharIndex >= this.source.length;
+    }
+
+    constructor(source: string) {
+        if(!source)
+            throw new Error("É necessário informar um comando SQL");
+
+        this.currentCharIndex = 0;
+        this.source = source;
+        this.result = [];
     }
 
     get() {
@@ -32,7 +39,7 @@ export class Tokenizer {
 
             // If the token exists, append to the result
             if(token)
-                this.result = this.result.concat(token);
+                this.result.push(token);
         }
 
         return this.result;
@@ -59,40 +66,34 @@ export class Tokenizer {
     }
 
     readWord() {
-        var buffer = "";
+        let buffer: string = "";
 
         while((charIsLetter.test(this.currentChar) || charIsNumber.test(this.currentChar) || this.currentChar == '_' || this.currentChar == '.') && !this.eof) {
             buffer = buffer.concat(this.currentChar);
             this.readNextChar();
         }
 
-        var type = "word";
+        var type = TokenType.Word;
 
         if(keywords.indexOf(buffer) > -1)
-            type = "keyword";
+            type = TokenType.Keyword;
 
-        return {
-            value: buffer,
-            type: type
-        };
+        return new Token(buffer, type);
     }
 
     readNumber() {
-        var buffer = "";
+        let buffer: string = "";
 
         while((charIsNumber.test(this.currentChar) || this.currentChar == '.') && !this.eof) {
             buffer = buffer.concat(this.currentChar);
             this.readNextChar();
         }
 
-        return {
-            value: buffer,
-            type: "number"
-        };
+        return new Token(buffer, TokenType.Number);
     }
 
     readString() {
-        var buffer = this.currentChar;
+        let buffer: string = this.currentChar;
         this.readNextChar();
 
         while(this.currentChar != '\'') {
@@ -103,24 +104,18 @@ export class Tokenizer {
         buffer = buffer.concat(this.currentChar);
         this.readNextChar();
 
-        return {
-            value: buffer,
-            type: "string"
-        };
+        return new Token(buffer, TokenType.String);
     }
 
     readVariable() {
-        var buffer = "";
+        let buffer: string = "";
 
         while((charIsLetter.test(this.currentChar) || charIsNumber.test(this.currentChar) || this.currentChar == '_' || this.currentChar == '@') && !this.eof) {
             buffer = buffer.concat(this.currentChar);
             this.readNextChar();
         }
 
-        return {
-            value: buffer,
-            type: "variable"
-        };
+        return new Token(buffer, TokenType.Variable);
     }
 
     readSymbol() {
@@ -143,7 +138,7 @@ export class Tokenizer {
             case '!':
             case '<':
             case '>':
-                var token = { value: this.currentChar, type: "symbol" };
+                var token = new Token(this.currentChar, TokenType.Symbol);
                 this.readNextChar();
                 return token;
             default:

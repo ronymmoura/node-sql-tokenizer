@@ -1,0 +1,20 @@
+{
+  "name": "node-sql-tokenizer",
+  "version": "1.0.0",
+  "main": "lib/index.js",
+  "repository": "https://github.com/ronymmoura/node-sql-tokenizer.git",
+  "author": "Rony Moura <ronymmoura@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "babel src --out-dir lib",
+    "start": "yarn build && node ./lib/test.js"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.1.5",
+    "@babel/core": "^7.1.6",
+    "@babel/preset-env": "^7.1.6"
+  },
+  "dependencies": {
+    "xregexp": "^4.2.0"
+  }
+}
